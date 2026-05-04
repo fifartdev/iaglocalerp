@@ -61,8 +61,10 @@ function toMonthlyData(txs: ChartTx[]) {
 const fmtTooltip = (v: number) =>
   new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(v)
 
-const fmtAxis = (v: number) =>
-  v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v}`
+const fmtAxis = (v: number | string) => {
+  const n = Number(v)
+  return n >= 1000 ? `€${(n / 1000).toFixed(0)}k` : `€${n}`
+}
 
 export function ChartSection({ transactions }: { transactions: ChartTx[] }) {
   const [range, setRange] = useState<Range>('12m')
@@ -116,8 +118,8 @@ export function ChartSection({ transactions }: { transactions: ChartTx[] }) {
               tickFormatter={fmtAxis}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                fmtTooltip(value),
+              formatter={(value, name) => [
+                fmtTooltip(Number(value ?? 0)),
                 name === 'income' ? 'Income' : 'Expense',
               ]}
               contentStyle={{
