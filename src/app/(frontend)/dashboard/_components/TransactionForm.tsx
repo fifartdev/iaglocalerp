@@ -83,6 +83,7 @@ export function TransactionForm({
       if (file) {
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('_payload', JSON.stringify({ alt: file.name }))
         const uploadRes = await fetch('/api/media', {
           method: 'POST',
           credentials: 'include',
