@@ -69,6 +69,11 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    'income-categories': IncomeCategory;
+    'expense-categories': ExpenseCategory;
+    'vat-categories': VatCategory;
+    incomes: Income;
+    expenses: Expense;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,17 +83,26 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'income-categories': IncomeCategoriesSelect<false> | IncomeCategoriesSelect<true>;
+    'expense-categories': ExpenseCategoriesSelect<false> | ExpenseCategoriesSelect<true>;
+    'vat-categories': VatCategoriesSelect<false> | VatCategoriesSelect<true>;
+    incomes: IncomesSelect<false> | IncomesSelect<true>;
+    expenses: ExpensesSelect<false> | ExpensesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    settings: Setting;
+  };
+  globalsSelect: {
+    settings: SettingsSelect<false> | SettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -122,7 +136,9 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  name?: string | null;
+  role: 'superadmin' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,7 +163,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -163,10 +179,89 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "income-categories".
+ */
+export interface IncomeCategory {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expense-categories".
+ */
+export interface ExpenseCategory {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vat-categories".
+ */
+export interface VatCategory {
+  id: number;
+  name: string;
+  rate: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "incomes".
+ */
+export interface Income {
+  id: number;
+  referenceNumber: string;
+  date: string;
+  name: string;
+  netAmount: number;
+  vatRate: number;
+  /**
+   * Calculated: Net × VAT Rate — server-side only
+   */
+  vatAmount?: number | null;
+  /**
+   * Calculated: Net + VAT — server-side only
+   */
+  totalGross?: number | null;
+  category: number | IncomeCategory;
+  document?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expenses".
+ */
+export interface Expense {
+  id: number;
+  referenceNumber: string;
+  date: string;
+  name: string;
+  netAmount: number;
+  vatRate: number;
+  /**
+   * Calculated: Net × VAT Rate — server-side only
+   */
+  vatAmount?: number | null;
+  /**
+   * Calculated: Net + VAT — server-side only
+   */
+  totalGross?: number | null;
+  category: number | ExpenseCategory;
+  document?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +278,40 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'income-categories';
+        value: number | IncomeCategory;
+      } | null)
+    | ({
+        relationTo: 'expense-categories';
+        value: number | ExpenseCategory;
+      } | null)
+    | ({
+        relationTo: 'vat-categories';
+        value: number | VatCategory;
+      } | null)
+    | ({
+        relationTo: 'incomes';
+        value: number | Income;
+      } | null)
+    | ({
+        relationTo: 'expenses';
+        value: number | Expense;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +321,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +344,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -240,6 +355,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -274,6 +391,68 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "income-categories_select".
+ */
+export interface IncomeCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expense-categories_select".
+ */
+export interface ExpenseCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vat-categories_select".
+ */
+export interface VatCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  rate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "incomes_select".
+ */
+export interface IncomesSelect<T extends boolean = true> {
+  referenceNumber?: T;
+  date?: T;
+  name?: T;
+  netAmount?: T;
+  vatRate?: T;
+  vatAmount?: T;
+  totalGross?: T;
+  category?: T;
+  document?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expenses_select".
+ */
+export interface ExpensesSelect<T extends boolean = true> {
+  referenceNumber?: T;
+  date?: T;
+  name?: T;
+  netAmount?: T;
+  vatRate?: T;
+  vatAmount?: T;
+  totalGross?: T;
+  category?: T;
+  document?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -314,6 +493,26 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings".
+ */
+export interface Setting {
+  id: number;
+  defaultVatRate: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings_select".
+ */
+export interface SettingsSelect<T extends boolean = true> {
+  defaultVatRate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
