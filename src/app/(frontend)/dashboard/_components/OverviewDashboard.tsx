@@ -69,8 +69,10 @@ function toMonthlyData(txs: DashboardTx[]) {
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(v)
-const fmtAxis = (v: number) =>
-  v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v}`
+const fmtAxis = (v: number | string) => {
+  const n = Number(v)
+  return n >= 1000 ? `€${(n / 1000).toFixed(0)}k` : `€${n}`
+}
 
 function sum(txs: DashboardTx[], field: 'netAmount' | 'vatAmount' | 'totalGross') {
   return txs.reduce((acc, tx) => acc + tx[field], 0)
@@ -248,7 +250,7 @@ export function OverviewDashboard({ transactions }: { transactions: DashboardTx[
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={fmtAxis} />
               <Tooltip
-                formatter={(value: number, name: string) => [fmt(value), name === 'income' ? 'Income' : 'Expense']}
+                formatter={(value, name) => [fmt(Number(value ?? 0)), name === 'income' ? 'Income' : 'Expense']}
                 contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }}
                 cursor={{ fill: '#f8fafc' }}
               />
