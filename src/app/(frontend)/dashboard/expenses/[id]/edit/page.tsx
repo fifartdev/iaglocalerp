@@ -36,6 +36,16 @@ export default async function EditExpensePage({
         ? String(rawCategory)
         : ''
 
+  const rawDocument = expense.document
+  const documentId =
+    rawDocument && typeof rawDocument === 'object'
+      ? String((rawDocument as { id: unknown }).id)
+      : rawDocument ? String(rawDocument) : ''
+  const documentUrl =
+    rawDocument && typeof rawDocument === 'object'
+      ? String((rawDocument as { url?: unknown }).url ?? '')
+      : ''
+
   const initialValues = {
     referenceNumber: String(expense.referenceNumber ?? ''),
     date: expense.date
@@ -45,6 +55,8 @@ export default async function EditExpensePage({
     netAmount: String(expense.netAmount ?? ''),
     vatRate: String(expense.vatRate ?? ''),
     categoryId,
+    documentId,
+    documentUrl,
   }
 
   return (
